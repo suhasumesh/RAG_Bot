@@ -1,0 +1,32 @@
+*{
+    font-family:Verdana, Geneva, Tahoma, sans-serif
+}
+
+body{
+    margin:0;
+    padding:0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-image:url() ;
+}
+
+main{
+    width:80vh;
+    height:80vh;
+    background: linear-gradient(to bottom,#f8f8f8,#cfcfcf);
+    display: flex;
+    align-items: center;
+}
+
+.bubble.user{
+    border-radius: 20px 20px 0 20px;
+    background-color: #E1F4EFFF;
+    margin-left: auto;
+}
+
+.bubble.assistant{
+    border-radius: 20px 20px 20px 0;
+    background-color: #dce7FF;
+}
