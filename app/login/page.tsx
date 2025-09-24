@@ -29,7 +29,12 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
+        console.log(`The data is ${JSON.stringify(data)}`);
+        // console.log(`The data is ${JSON.stringify(data.userId)}`);
         localStorage.setItem("token", data.token);
+        localStorage.setItem("userId",data.userId);
+        localStorage.setItem("email",data.email);
+        localStorage.setItem("role",data.role);
         setAlert({ type: "success", message: "Login successful! Redirecting..." });
         router.push("/chatbot");
         setTimeout(() => window.location.reload(), 1000);

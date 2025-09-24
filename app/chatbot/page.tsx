@@ -7,9 +7,15 @@ import PromptSuggestionsRow from "../components/PromptSuggestionsRow";
 import ReactMarkdown from "react-markdown";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getUserId } from "@/utils/user";
 
 const ChatbotPage = () => {
   const router = useRouter();
+  const userId = getUserId();
+  console.log(`From the Frontend Bot page - ${userId}`)
+  useEffect(() => {
+    if (!userId) router.replace("/login");
+  }, [router, userId]);
 
   // 1️⃣ Redirect if not logged in
   useEffect(() => {
@@ -20,7 +26,11 @@ const ChatbotPage = () => {
   }, [router]);
 
   const { input, handleInputChange, handleSubmit, isLoading, messages, append } =
-    useChat({ api: "/api/chat" });
+    useChat({
+      api: "/api/chat", body: {
+        userId: userId?? "",
+      },
+    });
 
   const [darkMode, setDarkMode] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);

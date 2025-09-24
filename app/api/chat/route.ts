@@ -6,6 +6,11 @@ import { OllamaEmbeddings } from "@langchain/ollama";
 import { Ollama } from "ollama";
 import { setGlobalDispatcher, Agent } from "undici";
 import { LRUCache } from "lru-cache";
+import { Chat } from "../../../models/Chat"; // make sure Chat model is imported
+import { connectToMongo } from "../../../lib/mongoDB";
+import { MessageItem } from "../../../models/Chat";
+
+await connectToMongo();
 
 setGlobalDispatcher(new Agent({
   connect: { timeout: 60000 },
@@ -92,9 +97,9 @@ function computeFactorScores(structured: any, rawText: string) {
 
   const decision_intensity = Math.min(1, decision_points / 5); // 5+ decisions => high
   const unstructured_content = Math.min(1, pct_unstructured);
-  const orchestration_need = Math.min(1, (systemsArr.length || (contains(["sap","orchestrator","api","database","crm","erp"]) ? 3 : 1)) / 4);
+  const orchestration_need = Math.min(1, (systemsArr.length || (contains(["sap", "orchestrator", "api", "database", "crm", "erp"]) ? 3 : 1)) / 4);
   const variability = Math.min(1, exception_rate * 3); // scale
-  const explainability_required = compliance >= 0.7 ? 1 : (contains(["audit","explain","why","audit trail"]) ? 0.8 : 0.3);
+  const explainability_required = compliance >= 0.7 ? 1 : (contains(["audit", "explain", "why", "audit trail"]) ? 0.8 : 0.3);
   const compliance_sensitive = Math.min(1, compliance);
   const volume_frequency = Math.min(1, volume / 1000); // 1000/day -> 1.0
 
@@ -124,6 +129,7 @@ function decideDisposition(scores: any) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    console.log(`Raw body from the frontend : ${JSON.stringify(body)}`);
     const messages = body.messages ?? [];
     let latestMessage = messages[messages.length - 1]?.content?.trim() ?? "";
     console.log(`Message from the Frontend :${latestMessage}`);
@@ -133,7 +139,33 @@ export async function POST(req: Request) {
     // parse metadata block if present
     const meta = parseMetadataFromText(latestMessage);
     console.log(`Meta data from the Frontend - ${JSON.stringify(meta)}`);
-  
+    
+
+    /// --- Save user message ---
+    const userId = body.userId ?? body.data?.userId; // make sure you pass this from the frontend
+    console.log(`The user ID is : ${userId}`)
+    if (!userId) return NextResponse.json({ error: "User ID not provided" }, { status: 400 });
+
+    let chat = await Chat.findOne({ userId, title: latestMessage.slice(0, 50) });
+    console.log(`Chat at the backend: ${JSON.stringify(chat)}`);
+    if(!chat){
+      console.log(`No chat found in the background`);
+    }
+
+    if (!chat) {
+      const generatedTitle = latestMessage.slice(0, 20) || "Untitled Chat";
+      chat = await Chat.create({ userId, title: generatedTitle, messages: [] });
+    }
+
+    const newMessage: MessageItem = {
+      role: "user",
+      content: latestMessage,
+      createdAt: new Date(),
+    };
+    chat.messages.push(newMessage);
+    await chat.save();
+
+//--------------------------------------------------------
     const domain = meta.domain ?? null;
     console.log(`Domain data from the Frontend - ${domain}`);
     const implementationGoal = meta.implementationGoal ?? null;
@@ -267,6 +299,9 @@ ${docContext}`;
         // Cache Stage2 response keyed by domain + text
         cache.set(cacheKey, stage2Response);
         console.log("✅ Cached Stage 2 Response");
+
+
+
       } catch (err) {
         console.error("Stage 2 streaming error:", err);
       } finally {
@@ -290,7 +325,10 @@ ${docContext}`;
               controller.enqueue(encoder.encode(chunk));
             }
           }
+          chat.messages.push({ role: "assistant", content: stage1Response, createdAt: new Date(), });
+          await chat.save();
 
+          console.log("✅ Assistant response saved to DB");
           // Stage 2 streaming
           await stage2Async(controller);
         } catch (err) {
@@ -309,5 +347,5 @@ ${docContext}`;
   }
 
   //---Generating the Suggestions to User to ask further questions
-  
+
 }

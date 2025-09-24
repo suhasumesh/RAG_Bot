@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       );
 
       user.resetPasswordToken = resetToken;
-      user.resetPasswordExpires =  new Date(Date.now()+2*24*60*60*1000);
+      user.resetPasswordExpires = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
       const resetUrl = `http://localhost:3000/reset-account?token=${resetToken}`;
 
       // Send notification email to Admin and User
@@ -114,5 +114,11 @@ export async function POST(req: NextRequest) {
     { expiresIn: "7d" }
   );
 
-  return NextResponse.json({ token });
+
+
+  return NextResponse.json({
+    token, userId: user._id.toString(), // <-- send userId as string
+    email: user.email,
+    role: user.role,
+  });
 }

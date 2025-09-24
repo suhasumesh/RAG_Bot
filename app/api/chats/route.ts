@@ -2,19 +2,22 @@
 import { NextResponse } from "next/server";
 import { connectToMongo } from "../../../lib/mongoDB";
 import { Chat } from "../../../models/Chat";
-import { getServerSession } from "next-auth"; // if you're using next-auth
 
-//1. Create a New chat
+// --- 1. Create a New Chat ---
 export async function POST(req: Request) {
   await connectToMongo();
 
-  const session = await getServerSession();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { title, userId } = await req.json();
 
-  const { title } = await req.json();
+  if (!userId) {
+    return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+  }
+  if (!title) {
+    return NextResponse.json({ error: "Missing title" }, { status: 400 });
+  }
 
   const newChat = await Chat.create({
-    userId: session.user.id,
+    userId,
     title,
     messages: [],
   });
@@ -22,21 +25,20 @@ export async function POST(req: Request) {
   return NextResponse.json(newChat);
 }
 
-//2. Get/List All chats for Side Bar
-export async function GET() {
+// --- 2. Get/List All Chats for Sidebar ---
+export async function GET(req: Request) {
   await connectToMongo();
 
-  // 🔐 get logged-in user
-  const session = await getServerSession();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const url = new URL(req.url);
+  const userId = url.searchParams.get("userId");
+
+  if (!userId) {
+    return NextResponse.json({ error: "Missing userId" }, { status: 400 });
   }
-  //get all user chats
-  const chats = await Chat.find({ userId: session.user.id })
+
+  const chats = await Chat.find({ userId })
     .sort({ updatedAt: -1 })
     .select("_id title updatedAt");
 
   return NextResponse.json(chats);
 }
-
-

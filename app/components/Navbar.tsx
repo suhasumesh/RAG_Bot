@@ -9,6 +9,13 @@ export default function Navbar() {
 
     const { loggedIn, logout } = useAuth();
     const router = useRouter();
+    const [role, setRole] = useState<string | null>(null);
+
+    useEffect(() => {
+        const storedRole = localStorage.getItem("role"); // 'user' or 'admin'
+        setRole(storedRole);
+    }, []);
+
 
     const handleLogout = () => {
         logout();
@@ -30,6 +37,13 @@ export default function Navbar() {
                         <li className="nav-item">
                             <Link className="nav-link" href="/about">About</Link>
                         </li>
+                        {role === "admin" && (
+                            <li className="nav-item">
+                                <Link href="/chat/admin/dashboard" className="nav-link">
+                                    Admin Dashboard
+                                </Link>
+                            </li>
+                        )}
                     </ul>
                     <div className="d-flex">
                         {!loggedIn ? (

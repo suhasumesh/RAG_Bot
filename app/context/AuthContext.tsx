@@ -14,7 +14,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // On mount, sync with localStorage
-    const token = localStorage.getItem("token");
+    let token = localStorage.getItem("token");
     setLoggedIn(!!token);
   }, [loggedIn]);
 
@@ -25,7 +25,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("email");
+    localStorage.removeItem("role");
     setLoggedIn(false);
+    setTimeout(() => window.location.reload(), 1000);
   };
 
   return (
