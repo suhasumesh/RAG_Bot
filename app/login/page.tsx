@@ -36,7 +36,7 @@ export default function LoginPage() {
         localStorage.setItem("email",data.email);
         localStorage.setItem("role",data.role);
         setAlert({ type: "success", message: "Login successful! Redirecting..." });
-        router.push("/chatbot");
+        router.replace("/chatbot");
         setTimeout(() => window.location.reload(), 1000);
       } else {
         // Handle different error messages from backend

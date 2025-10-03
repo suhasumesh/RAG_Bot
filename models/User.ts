@@ -16,6 +16,8 @@ export interface IUser extends Document {
   resetPasswordExpires?: Date;
   role: "user" | "admin";
   createdAt: Date;
+  otp?: string;
+  otpExpires?: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
   isLocked(): boolean;
 }
@@ -35,6 +37,8 @@ const UserSchema: Schema<IUser> = new Schema(
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
     role: { type: String, enum: ["user", "admin"], default: "user" },
+    otp: { type: String },
+    otpExpires: { type: Date },
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );

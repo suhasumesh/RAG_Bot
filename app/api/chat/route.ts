@@ -263,15 +263,45 @@ export async function POST(req: Request) {
    - Do not repeat the user’s question.  
 
 5. **Special Rule for RPA Process Evaluation**  
-   - If the user provides an RPA process or workflow, analyze it and respond with:  
-     - **Rating**: Suitability for automation (Low / Medium / High) with a short justification.  
-     - **ROI**: Expected Return on Investment (Low / Medium / High) and explain why.  
-     - **Execution Constraints**: List technical, business, or compliance constraints.  
-     - **To-Be Approach**: How the process should ideally be automated.  
-     - **Pre-Requisites**: Dependencies, setup, or organizational requirements before automation.  
+   - If the user provides an RPA process or workflow, analyze it and respond with both:  
+
+   (a) **Structured Output** (for automation scoring):  
+
+   
+     "AI Analysis": 
+       "Automation Score": "0-100",
+       "Recommended Fitment": "Agentic AI | RPA | Point Solution | Hybrid",
+       "LLM Recommendation": "small LLM | large LLM"
+     ,
+     "Process Dimensions": {
+       "data structure": "structured | semi_structured | unstructured",
+       "process volume": "low | medium | high",
+       "risk tolerance": "low | medium | high",
+       "context awareness": "low | medium | high",
+       "process frequency": "low | medium | high",
+       "decision intensity": "low | medium | high",
+       "exception handling": "0-100 (numeric score)",
+       "knowledge intensity": "low | medium | high",
+       "compliance sensitivity": "low | medium | high",
+       "orchestration complexity": "low | medium | high"
+     },
+     "Recommendations": {
+       "Top Point Solutions": ["..."],
+       "Top Language Models": ["..."],
+       "Notes": "Short guidance note"
+     }
+   }
+
+   (b) **RPA-Specific Analysis** (free text with clear sections):  
+   - **Rating**: Suitability for automation (Low / Medium / High) with justification.  
+   - **ROI**: Expected Return on Investment (Low / Medium / High) with reason.  
+   - **Execution Constraints**: List technical, business, or compliance constraints.  
+   - **To-Be Approach**: Ideal automation approach.  
+   - **Pre-Requisites**: Dependencies, setup, or organizational requirements.  
 
 Context:  
 ${docContext}`;
+
 
         const enrichedMessages = [...messages, { role: "system", content: systemPrompt }];
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { AuthProvider } from "../context/AuthContext";
 
 export default function ResetPasswordPage() {
     const searchParams = useSearchParams();
@@ -29,6 +30,10 @@ export default function ResetPasswordPage() {
                     body: JSON.stringify({ token }),
                 });
                 const data = await res.json();
+                console.log(data);
+                console.log(data.valid);
+                // console.log(`Storing a temporary token in local storage and it shd be removed after reseting the password: ${token}`);
+                // localStorage.setItem("token",token);
                 setTokenValid(data.valid);
                 if (!data.valid) setAlert({ type: "error", message: data.error });
             } catch {
@@ -63,6 +68,8 @@ export default function ResetPasswordPage() {
 
             if (res.ok) {
                 setAlert({ type: "success", message: "Password reset successful. Redirecting to login..." });
+                localStorage.removeItem(token);
+                console.log(`Removed the Temporary Token after reseting the password`);
                 setTimeout(() => router.push("/login"), 3000);
             } else {
                 setAlert({ type: "error", message: data.error || "Something went wrong" });
@@ -80,6 +87,7 @@ export default function ResetPasswordPage() {
     </div>
 
     return (
+         <AuthProvider skipRedirect>
         <section className="vh-100">
             <div className="container-fluid h-custom">
                 <div className="row d-flex justify-content-center align-items-center h-100">
@@ -163,5 +171,6 @@ export default function ResetPasswordPage() {
         }
       `}</style>
         </section>
+        </AuthProvider>
     );
 }
